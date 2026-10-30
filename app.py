@@ -6,9 +6,16 @@ app = Flask(__name__)
 model = joblib.load("student_result_model.pkl")
 FEATURES = ["attendance", "internal_marks", "assignment_marks", "previous_score"]
 
+
 @app.get("/")
-def health():
+def home():
     return jsonify({"service": "student-result-prediction", "status": "ok"})
+
+
+@app.get("/health")
+def health():
+    return jsonify({"status": "healthy"}), 200
+
 
 @app.post("/predict")
 def predict():
@@ -23,8 +30,11 @@ def predict():
     except (TypeError, ValueError):
         return jsonify({"error": "All features must be numeric"}), 400
     prediction = int(model.predict(pd.DataFrame([row]))[0])
-    return jsonify({"prediction": "PASS" if prediction == 1 else "FAIL",
-                    "prediction_code": prediction})
+    return jsonify({
+        "prediction": "PASS" if prediction == 1 else "FAIL",
+        "prediction_code": prediction
+    })
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
